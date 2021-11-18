@@ -1,0 +1,18 @@
+
+GOAL FORCE : When we are given the value of the current velocity, the desired velocity, and the direction from the agen's current position to the destination, and also a constant t, then we would be able to achieve
+a steering behaviour for the agents by again calculating the direction in which the agent needs to move instead of them following a beeline.
+
+PROXIMITY FORCE: Its responsible for increasing the force exponentially when agents are closer and exponentially reduce the force when the agents are far away from each other. Also, we would be coupling this with
+the repulsion force in order to push the agents far from each other.
+
+REPULSION FORCE: Its an explosive force, where the value of g*k(rij-dij) would be becoming a large number when the agents would be overlapping with each other and would have the value of 0 otherwise.
+Its goal is to push the agents away from each other when they begin to stack up. So if they overlap more, more the force.
+Note that both the repulsion and proximity forces are acting in the same direction.
+
+
+SLIDING FRICTION FORCE: Its goal is to move an agent x away from another agent y tangentially in order to avoid them from colliding with each other. Its magnitude would be depending on the direction in which 
+the velocities are applied, so the agents which are travelling in the opposite direction would be experiencing a higher value of force. Also, as the agents move farther away, the force would be lower and as they 
+move closer the higher the value of force.
+
+
+  
