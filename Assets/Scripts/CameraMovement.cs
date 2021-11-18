@@ -19,8 +19,8 @@ public class CameraMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector3 regForward = fixYAxis(gameObject.transform.forward);
-        Vector3 regRight = fixYAxis(gameObject.transform.right);
+        Vector3 normalForward = fixYAxis(gameObject.transform.forward);
+        Vector3 normalRight = fixYAxis(gameObject.transform.right);
         
         if(Input.GetKeyDown("i")){
             invertY = !invertY;
@@ -37,19 +37,19 @@ public class CameraMovement : MonoBehaviour
 
         if (Input.GetKey("w"))
         {
-            gameObject.transform.Translate(regForward * Time.deltaTime*speed, Space.World);
+            gameObject.transform.Translate(normalForward * Time.deltaTime*speed, Space.World);
         }
         if (Input.GetKey("s"))
         {
-            gameObject.transform.Translate(-regForward * Time.deltaTime*speed, Space.World);
+            gameObject.transform.Translate(-normalForward * Time.deltaTime*speed, Space.World);
         }
         if (Input.GetKey("a"))
         {
-            gameObject.transform.Translate(-regRight * Time.deltaTime*speed, Space.World);
+            gameObject.transform.Translate(-normalRight * Time.deltaTime*speed, Space.World);
         }
         if (Input.GetKey("d"))
         {
-            gameObject.transform.Translate(regRight * Time.deltaTime*speed, Space.World);
+            gameObject.transform.Translate(normalRight * Time.deltaTime*speed, Space.World);
         }
         if (Input.GetKey(KeyCode.LeftShift)|| Input.GetKey(KeyCode.RightShift))
         {
