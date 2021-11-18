@@ -29,26 +29,21 @@ public class AgentManager : MonoBehaviour
     {
         instance = this;
         Random.InitState(0);
-
         agentParent = GameObject.Find("Agents");
-
         Agent leader = null;
         if(leaderEnabled) {
-            var randPos = new Vector3((Random.value - 0.5f) * agentSpawnRadius, 0, (Random.value - 0.5f) * agentSpawnRadius);
-
+            var position = new Vector3((Random.value - 0.5f) * agentSpawnRadius, 0, (Random.value - 0.5f) * agentSpawnRadius);
             NavMeshHit hit;
-            NavMesh.SamplePosition(randPos, out hit, 10, NavMesh.AllAreas);
-            randPos = hit.position + Vector3.up;
-
+            NavMesh.SamplePosition(position, out hit, 10, NavMesh.AllAreas);
+            position = hit.position + Vector3.up;
             GameObject agent = null;
-            agent = Instantiate(agentPrefab, randPos, Quaternion.identity);
+            agent = Instantiate(agentPrefab, position, Quaternion.identity);
             agent.name = "Leader";
             agent.transform.parent = agentParent.transform;
             var agentScript = agent.GetComponent<Agent>();
-            agentScript.radius = 0.3f;// Random.Range(0.2f, 0.6f);
+            agentScript.radius = 0.3f;
             agentScript.mass = MASS;
             agentScript.perceptionRadius = 3;
-
             leader = agentScript;
             agent.GetComponent<Renderer>().material.SetColor("_Color", Color.red);
             leader.makeLeader();
@@ -58,20 +53,18 @@ public class AgentManager : MonoBehaviour
 
         for (int i = 0; i < agentCount; i++)
         {
-            var randPos = new Vector3((Random.value - 0.5f) * agentSpawnRadius, 0, (Random.value - 0.5f) * agentSpawnRadius);
+            var position = new Vector3((Random.value - 0.5f) * agentSpawnRadius, 0, (Random.value - 0.5f) * agentSpawnRadius);
             NavMeshHit hit;
-            NavMesh.SamplePosition(randPos, out hit, 10, NavMesh.AllAreas);
-            randPos = hit.position + Vector3.up;
-
+            NavMesh.SamplePosition(position, out hit, 10, NavMesh.AllAreas);
+            position = hit.position + Vector3.up;
             GameObject agent = null;
-            agent = Instantiate(agentPrefab, randPos, Quaternion.identity);
+            agent = Instantiate(agentPrefab, position, Quaternion.identity);
             agent.name = "Agent " + i;
             agent.transform.parent = agentParent.transform;
             var agentScript = agent.GetComponent<Agent>();
-            agentScript.radius = 0.3f;// Random.Range(0.2f, 0.6f);
+            agentScript.radius = 0.3f;
             agentScript.mass = MASS;
             agentScript.perceptionRadius = 3;
-
             agents.Add(agentScript);
             agentsObjs.Add(agent, agentScript);
 
@@ -99,15 +92,15 @@ public class AgentManager : MonoBehaviour
                 }
             } else
             {
-                var randPos = new Vector3((Random.value - 0.5f) * agentSpawnRadius, 0, (Random.value - 0.5f) * agentSpawnRadius);
+                var position = new Vector3((Random.value - 0.5f) * agentSpawnRadius, 0, (Random.value - 0.5f) * agentSpawnRadius);
 
                 NavMeshHit hit;
-                NavMesh.SamplePosition(randPos, out hit, 1.0f, NavMesh.AllAreas);
+                NavMesh.SamplePosition(position, out hit, 1.0f, NavMesh.AllAreas);
                 print(hit.position);
                 Debug.DrawLine(hit.position, hit.position + Vector3.up * 10, Color.red, 1000000);
                 foreach (var agent in agents)
                 {
-                    //agent.ComputePath(hit.position);
+                    
                 }
             }
         }
@@ -115,7 +108,7 @@ public class AgentManager : MonoBehaviour
 #if UNITY_EDITOR
         if (Application.isFocused)
         {
-            //UnityEditor.SceneView.FocusWindowIfItsOpen(typeof(UnityEditor.SceneView));
+            
         }
 #endif
 
@@ -186,12 +179,10 @@ public class AgentManager : MonoBehaviour
     #endregion
 
     #region Utility Classes
-
     private class Tuple<K,V>
     {
         public K Item1;
         public V Item2;
-
         public Tuple(K k, V v) {
             Item1 = k;
             Item2 = v;
