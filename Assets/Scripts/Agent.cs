@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 public class Agent : MonoBehaviour
-{   
+{
     private Rigidbody rBody;
     private Vector3 wf = Vector3.zero;
     private List<Vector3> p;
@@ -16,12 +16,12 @@ public class Agent : MonoBehaviour
     private HashSet<GameObject> pn = new HashSet<GameObject>();
 
     private bool vp = false;
-    private bool  vn = true;
+    private bool vn = true;
     private bool vw = false;
 
     public float perceptionRadius;
     public float mass;
-    
+
 
     void Start()
     {
@@ -39,10 +39,12 @@ public class Agent : MonoBehaviour
 
     private void Update()
     {
-        if(isldr) {
+
+        if (isldr)
+        {
             float vtl = Input.GetAxis("Vertical");
             float hz = Input.GetAxis("Horizontal");
-            
+
             rBody.AddForce(new Vector3(hz, 0.0f, vtl) * 100);
         }
         float dis = Vector3.Distance(transform.position, p[0]);
@@ -50,8 +52,8 @@ public class Agent : MonoBehaviour
         if (p.Count > 1 && dis < 1.1f)
         {
             p.RemoveAt(0);
-        } 
-        
+        }
+
         else if (p.Count == 1 && dis < 2f)
         {
             p.RemoveAt(0);
@@ -66,18 +68,6 @@ public class Agent : MonoBehaviour
 
         #region Visualization
 
-        if (vp)
-        {
-            if (p.Count > 0)
-            {
-                Debug.DrawLine(transform.position, p[0], Color.green);
-            }
-            for (int i = 0; i < p.Count - 1; i++)
-            {
-                Debug.DrawLine(p[i], p[i + 1], Color.yellow);
-            }
-        }
-
         if (vn)
         {
             foreach (var neighbor in pn)
@@ -86,10 +76,30 @@ public class Agent : MonoBehaviour
             }
         }
 
+        if (vp)
+        {
+            if (p.Count > 0)
+            {
+                Debug.DrawLine(transform.position, p[0], Color.blue);
+            }
+
+            for (int i = 0; i < p.Count - 1; i++)
+            {
+                Debug.DrawLine(p[i], p[i + 1], Color.red);
+            }
+        }
+
         #endregion
     }
 
     #region Public Functions
+
+
+
+    public Vector3 GetVelocity()
+    {
+        return rBody.velocity;
+    }
 
     public void ComputePath(Vector3 destination)
     {
@@ -98,121 +108,120 @@ public class Agent : MonoBehaviour
         nam.CalculatePath(destination, nmPath);
         p = nmPath.corners.Skip(1).ToList();
         nam.enabled = false;
-
-    }
-
-    public Vector3 GetVelocity()
-    {
-        return rBody.velocity;
     }
 
     #endregion
 
     #region Part 1
 
-    private Vector3 ComputeForce()
-    {
-        var force = Vector3.zero;
-        force += CalculateAgentForce();
-        if(hasldr) {
-            force += CalculateLeaderForce();
-        }
-        
 
-        wf = Vector3.zero;
-        if (force != Vector3.zero)
-        {
-            return force.normalized * Mathf.Min(force.magnitude, Parameters.maxSpeed);
-        } else
-        {
-            return Vector3.zero;
-        }
-        
-    }
-    
-    private Vector3 CalculateGoalForce()
-    {
-        Vector3 velocity = GetVelocity();
-        Vector3 direction = (p[0] - transform.position).normalized;
-
-        Vector3 force = mass*(DESIRED_VELOCITY*direction-velocity);
-
-        return force;
-    }
 
     private Vector3 CalculateAgentForce()
     {
-        Vector3 force = Vector3.zero;
-        int count = pn.RemoveWhere(g => !g.activeSelf);
-       
-        foreach(var agent in pn){
-            float distance = -Vector3.Distance(transform.position, agent.transform.position);
-            Vector3 direction = (transform.position - agent.transform.position).normalized;
+        Vector3 fce = Vector3.zero;
 
-            float agentRadii = agent.gameObject.GetComponent<Agent>().radius + radius;
-            float agentOverLap = Math.Max(agentRadii - Vector3.Distance(transform.position, agent.transform.position), 0);
+        foreach (var agt in pn)
+        {
 
-            force += Parameters.A * Mathf.Exp(distance / Parameters.B) * direction;
+            float ards = agt.gameObject.GetComponent<Agent>().radius + radius;
+            float aolap = Math.Max(ards - Vector3.Distance(transform.position, agt.transform.position), 0);
 
-            force += agentOverLap * Parameters.k * distance *direction;
+            Vector3 dir = (transform.position - agt.transform.position).normalized;
 
-            Vector3 tang = Vector3.Cross(Vector3.up, direction);
-            force += agentOverLap * Parameters.Kappa * Vector3.Dot(rBody.velocity - agent.gameObject.GetComponent<Rigidbody>().velocity, tang) * tang;
+            float dt = -Vector3.Distance(transform.position, agt.transform.position);
+
+            fce += Parameters.A * Mathf.Exp(dt / Parameters.B) * dir;
+
+            fce += aolap * Parameters.k * dt * dir;
+
+            Vector3 tg = Vector3.Cross(Vector3.up, dir);
+            fce += aolap * Parameters.Kappa * Vector3.Dot(rBody.velocity - agt.gameObject.GetComponent<Rigidbody>().velocity, tg) * tg;
 
         }
-
-        return force;
+        return fce;
     }
-    
-    private void CalculateWallForce(Collision collision)
+
+    private Vector3 ComputeForce()
     {
-        Vector3 force = Vector3.zero;
-        Vector3 direction = -(collision.contacts[0].point - transform.position).normalized;
-        float magnitude = 1.0f;
+        var f = Vector3.zero;
+        f += CalculateAgentForce();
 
-        wf += direction*magnitude*mass;
-        return;
+        if (hasldr)
+        {
+            f += CalculateLeaderForce();
+        }
+
+        wf = Vector3.zero;
+        if (f != wf)
+        {
+            return f.normalized * Mathf.Min(f.magnitude, Parameters.maxSpeed);
+        }
+        else
+        {
+            return Vector3.zero;
+        }
+
     }
+
+    private Vector3 CalculateGoalForce()
+    {
+        Vector3 vel = GetVelocity();
+        Vector3 dir = (p[0] - transform.position).normalized;
+
+        Vector3 fce = mass * (DESIRED_VELOCITY * dir - vel);
+
+        return fce;
+    }
+
 
     public void ApplyForce()
     {
-        var force = ComputeForce();
-        force.y = 0;
+        var fce = ComputeForce();
+        fce.y = 0;
 
-        rBody.AddForce(force * 10, ForceMode.Force);
+        rBody.AddForce(fce * 10, ForceMode.Force);
     }
 
-    public void OnTriggerEnter(Collider other)
+    private void CalculateWallForce(Collision collision)
     {
-        if (AgentManager.IsAgent(other.gameObject))
-        {
-            pn.Add(other.gameObject);
-        }
+        wf += (-(collision.contacts[0].point - transform.position).normalized) * 1.0f * mass;
+        return;
     }
-    
-    public void OnTriggerExit(Collider other)
+
+
+
+    public void OnTriggerExit(Collider o)
     {
-        if (pn.Contains(other.gameObject))
+        if (pn.Contains(o.gameObject))
         {
-            pn.Remove(other.gameObject);
+            pn.Remove(o.gameObject);
         }
     }
 
-    public void OnCollisionEnter(Collision collision)
+    public void OnTriggerEnter(Collider o)
     {
-        if(collision.gameObject.tag == "wall") {
-            lastCollidedWall = collision.gameObject;
-        }
-
-        if(WallManager.IsWall(collision.gameObject))
+        if (AgentManager.IsAgent(o.gameObject))
         {
-            CalculateWallForce(collision);
+            pn.Add(o.gameObject);
         }
     }
 
     public void OnCollisionExit(Collision collision)
     {
-        
+        return;
+    }
+
+    public void OnCollisionEnter(Collision c)
+    {
+        if (c.gameObject.tag == "wall")
+        {
+            lcwall = c.gameObject;
+        }
+
+        if (WallManager.IsWall(c.gameObject))
+        {
+            CalculateWallForce(c);
+        }
     }
 
     #endregion
@@ -221,132 +230,146 @@ public class Agent : MonoBehaviour
 
     #region Single-Agent Behaviors
 
-        GameObject lastCollidedWall = null;
-        float maxWallDist;
-
-        private Vector3 CalculateWallFollowForce() {
-            if(lastCollidedWall == null) {
-                return Vector3.zero;
-            }
-
-            Vector3 separation = transform.position - lastCollidedWall.transform.position, direction = new Vector3(0,0,0);
-
-            
-            int inwardF = 0, forwardF = 2;
-            float x = separation.x * lastCollidedWall.transform.localScale.z;
-            float z = separation.z * lastCollidedWall.transform.localScale.x;
+    GameObject lcwall = null;
+    float maxWallDist;
 
 
+    private Vector3 CalculateSpiralForce()
+    {
 
-            if(z >= Math.Abs(x)) {
-                direction = new Vector3(forwardF,0,-1*inwardF);
-            }
-            else if(x > Math.Abs(z)) {
-                direction = new Vector3(-1*inwardF,0,-1*forwardF);
-            }
-            else if(z < -1*Math.Abs(x)) {
-                direction = new Vector3(-1*forwardF,0,inwardF);
-            }
-            else if(x < -1*Math.Abs(z)) {
-                direction = new Vector3(inwardF,0,forwardF);
-            }
+        Vector3 toCen = Vector3.zero - new Vector3(transform.position.x, 0, transform.position.z);
+        Vector3 tg = Vector3.Cross(toCen, Vector3.up);
 
-            direction = direction.normalized;
-            float directionalVelocity = Vector3.Dot(rBody.velocity, direction);
-            if(directionalVelocity > 0.6f) {
-                direction = Vector3.zero;
-            }
+        Vector3 nf = tg;
+        nf += toCen;
 
-            Vector3 inF = separation.normalized * -0.1f;
+        Debug.DrawLine(transform.position, transform.position + tg, Color.blue);
+        Debug.DrawLine(transform.position, transform.position + toCen, Color.red);
 
-            Vector3 finalForce = direction;
-            if(rBody.velocity.magnitude > 0.01f)
-                finalForce += inF;
-            else
-                finalForce = -10*inF;
-            
-            if(vw) {
-                Debug.DrawLine(transform.position, lastCollidedWall.transform.position, Color.red);
-                Debug.DrawLine(transform.position, transform.position+finalForce*5, Color.green);
-            }
+        return nf * mass;
+    }
 
-            return mass*(finalForce + inF);
+    private Vector3 CalculateWallFollowForce()
+    {
+
+        if (lcwall == null)
+        {
+            return Vector3.zero;
         }
 
+        Vector3 stn = transform.position - lcwall.transform.position, dir = new Vector3(0, 0, 0);
 
-        private Vector3 CalculateSpiralForce(){
-            Vector3 toCenter = Vector3.zero - new Vector3(transform.position.x, 0, transform.position.z);
-            Vector3 tang = Vector3.Cross(toCenter, Vector3.up);
+        float z = stn.z * lcwall.transform.localScale.x;
+        float x = stn.x * lcwall.transform.localScale.z;
 
-            Vector3 newForce = tang;
-            newForce += toCenter;
+        int iforce = 0, fforce = 2;
 
-            Debug.DrawLine(transform.position, transform.position+tang, Color.magenta);
-            Debug.DrawLine(transform.position, transform.position+toCenter, Color.green);
-
-            return newForce * mass;
+        if (z >= Math.Abs(x))
+        {
+            dir = new Vector3(fforce, 0, -1 * iforce);
         }
+        else if (x > Math.Abs(z))
+        {
+            dir = new Vector3(-1 * iforce, 0, -1 * fforce);
+        }
+        else if (z < -1 * Math.Abs(x))
+        {
+            dir = new Vector3(-1 * fforce, 0, iforce);
+        }
+        else if (x < -1 * Math.Abs(z))
+        {
+            dir = new Vector3(iforce, 0, fforce);
+        }
+
+        dir = dir.normalized;
+
+        if (Vector3.Dot(rBody.velocity, dir) > 0.6f)
+        {
+            dir = Vector3.zero;
+        }
+
+        Vector3 ifforce = stn.normalized * -0.1f;
+
+        Vector3 finForce = dir;
+        if (rBody.velocity.magnitude > 0.01f)
+            finForce += ifforce;
+        else
+            finForce = -10 * ifforce;
+
+        if (vw)
+        {
+            Debug.DrawLine(transform.position, lcwall.transform.position, Color.red);
+            Debug.DrawLine(transform.position, transform.position + finForce * 5, Color.green);
+        }
+
+        return mass * (finForce + ifforce);
+    }
 
     #endregion
 
     #region Group Behaviors
 
-        #region Crowd Following
+    #region Leader Following
 
-        private Vector3 CalculateCrowdForce() {
-            Vector3 sumVelocity = rBody.velocity;
-            foreach(GameObject agent in pn) {
-                
-                sumVelocity += agent.GetComponent<Rigidbody>().velocity;
+    public Agent ldr;
+    public void removeLeader(Agent a)
+    {
+        hasldr = false;
+    }
+    bool hasldr = false, isldr = false;
 
-            }
+    public void setLeader(Agent a)
+    {
+        hasldr = true;
+        ldr = a;
+    }
+    public void makeLeader()
+    {
+        isldr = true;
+    }
 
-            Vector3 desiredVelocity = sumVelocity / (pn.Count + 1);
-            
-            return mass * (desiredVelocity - rBody.velocity);
+    private Vector3 CalculateLeaderForce()
+    {
+        if (!hasldr)
+        {
+            return Vector3.zero;
         }
 
-        #endregion
+        Vector3 pdf = transform.position - ldr.transform.position;
 
-        #region Leader Following
+        float dist = Math.Abs(pdf.magnitude) - radius - ldr.radius;
+        float forceMult = 2 / dist - 1;
 
-        public Agent ldr;
-        bool hasldr = false, isldr = false; 
-
-        public void setLeader(Agent a) {
-            hasldr = true;
-            ldr = a;
+        if (Vector3.Dot(rBody.velocity, pdf.normalized) < -0.7f && forceMult < 0)
+        {
+            return Vector3.zero;
         }
-        public void removeLeader(Agent a) {
-            hasldr = false;
-        }
-        public void makeLeader() {
-            isldr = true;
-        }
-        private Vector3 CalculateLeaderForce() {
-            if(!hasldr) {
-                return Vector3.zero;
-            }
-            
-            Vector3 posDif = transform.position - ldr.transform.position;
 
-            float dist = Math.Abs(posDif.magnitude) - radius - ldr.radius;
-            float forceMult = 2 / dist - 1;
-
-            if(Vector3.Dot(rBody.velocity, posDif.normalized) > 0.7f && forceMult > 0) {
-                return Vector3.zero;
-            }
-            if(Vector3.Dot(rBody.velocity, posDif.normalized) < -0.7f && forceMult < 0) {
-                return Vector3.zero;
-            }
-
-            return posDif.normalized * mass * forceMult;
+        if (Vector3.Dot(rBody.velocity, pdf.normalized) > 0.7f && forceMult > 0)
+        {
+            return Vector3.zero;
         }
-        #endregion
+
+        return pdf.normalized * mass * forceMult;
+    }
+    #endregion
+
+    #region Crowd Following
+
+    private Vector3 CalculateCrowdForce()
+    {
+        Vector3 svel = rBody.velocity;
+        foreach (GameObject agt in pn)
+        {
+            svel += agt.GetComponent<Rigidbody>().velocity;
+        }
+
+        return mass * ((svel / (pn.Count + 1)) - rBody.velocity);
+    }
 
     #endregion
 
-    
+    #endregion
 
     #endregion
 }
