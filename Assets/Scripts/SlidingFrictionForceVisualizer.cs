@@ -4,28 +4,28 @@ using UnityEngine;
 
 public class SlidingFrictionForceVisualizer : MonoBehaviour
 {
-    public GameObject agent1;
-    public GameObject agent2;
+    public GameObject player1;
+    public GameObject player2;
 
     [Range(0, 10)]
-    public float speed1;
+    public float velo1;
     [Range(0, 10)]
-    public float speed2;
-    
+    public float velo2;
+
     void Update()
     {
-        Debug.DrawLine(agent1.transform.position, agent1.transform.position + Vector3.up * 3, Color.green);
-        Debug.DrawLine(agent1.transform.position, agent1.transform.position + agent1.transform.forward * speed1, Color.cyan);
-        Debug.DrawLine(agent2.transform.position, agent2.transform.position + agent2.transform.forward * speed2, Color.cyan);
+        Debug.DrawLine(player1.transform.position, player1.transform.position + Vector3.up * 3, Color.green);
+        Debug.DrawLine(player1.transform.position, player1.transform.position + player1.transform.forward * velo1, Color.cyan);
+        Debug.DrawLine(player2.transform.position, player2.transform.position + player2.transform.forward * velo2, Color.cyan);
 
-        var n = (agent2.transform.position - agent1.transform.position).normalized;
+        var n = (player2.transform.position - player1.transform.position).normalized;
         var tangent = Vector3.Cross(Vector3.up, n);
-        Debug.DrawLine(agent1.transform.position, agent1.transform.position + tangent * 2, Color.yellow);
+        Debug.DrawLine(player1.transform.position, player1.transform.position + tangent * 2, Color.yellow);
 
-        var magnitude = Vector3.Dot(agent1.transform.forward * speed1 - agent2.transform.forward * speed2, tangent);
-        Debug.DrawLine(agent1.transform.position, agent1.transform.position + tangent * magnitude * 2, Color.red);
-        
-        Debug.DrawLine(agent1.transform.position + agent1.transform.forward * speed1, agent2.transform.position + agent2.transform.forward * speed2, Color.magenta);
+        var magnitude = Vector3.Dot(player1.transform.forward * velo1 - player2.transform.forward * velo2, tangent);
+        Debug.DrawLine(player1.transform.position, player1.transform.position + tangent * magnitude * 2, Color.red);
+
+        Debug.DrawLine(player1.transform.position + player1.transform.forward * velo1, player2.transform.position + player2.transform.forward * velo2, Color.magenta);
 
         #region Visualization
 
